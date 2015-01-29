@@ -1,0 +1,139 @@
+<apex:page docType="html-5.0" showHeader="false" applyBodyTag="false" applyHtmlTag="false" standardStylesheets="false">
+    <html ng-app="objDescApp">
+    <head>
+        <title>Object Description</title>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
+        <style>body{padding-top:50px}.sub-header{padding-bottom:10px;border-bottom:1px solid #eee}.navbar-fixed-top{border:0}.sidebar{display:none}@media (min-width:768px){.sidebar{position:fixed;top:51px;bottom:0;left:0;z-index:1000;display:block;padding:20px;overflow-x:hidden;overflow-y:auto;background-color:#f5f5f5;border-right:1px solid #eee}}.nav-sidebar{margin-right:-21px;margin-bottom:20px;margin-left:-20px}.nav-sidebar>li>a{padding-right:20px;padding-left:20px}.nav-sidebar>.active>a,.nav-sidebar>.active>a:focus,.nav-sidebar>.active>a:hover{color:#fff;background-color:#428bca}.main{padding:20px}@media (min-width:768px){.main{padding-right:40px;padding-left:40px}}.main .page-header{margin-top:0}.placeholders{margin-bottom:30px;text-align:center}.placeholders h4{margin-bottom:0}.placeholder{margin-bottom:20px}.placeholder img{display:inline-block;border-radius:50%}.panel-heading a:after{font-family:'Glyphicons Halflings';content:"\e114";float:right;color:grey}.panel-heading a.collapsed:after{content:"\e080"}</style>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.10/angular.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.12.0/ui-bootstrap-tpls.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jsforce/1.3.1/jsforce.min.js"></script>
+        <script>
+            var conn = new jsforce.Connection({accessToken: '{!$API.Session_Id}'});
+
+            angular.module('objDescApp', ['ui.router', 'ui.bootstrap']);
+
+            angular.module('objDescApp').config(['$stateProvider', '$urlRouterProvider', function ($stateProvider, $urlRouterProvider) {
+                'use strict';
+                $urlRouterProvider.otherwise('/');
+
+                $stateProvider
+                .state('main', {
+                   url: '/',
+                   views: {
+                        "body": {
+                            template: '<h2>Select an object for more information</h2>'
+                        }
+                   }
+                })
+                .state('object', {
+                   url: '/{name}',
+                   views: {
+                        "body": {
+                            controller: 'ObjectDetailCtrl',
+                            template: '<h1 class=page-header ng-show=loading_main><i class="fa fa-circle-o-notch fa-spin"></i> Loading</h1><h1 class=page-header ng-hide=loading_main>{{ current_object.label }}</h1><div class=panel-group id=description_accordion><div class="panel panel-default"><div class=panel-heading><h4 class=panel-title><a class=collapse_link ng-click="isDescriptionCollapsed = !isDescriptionCollapsed" ng-class="{\'collapsed\': isDescriptionCollapsed}">Description</a></h4></div><div id=description_collapse class="panel-collapse collapse" collapse=isDescriptionCollapsed><div class=panel-body><div class=row><div class=col-lg-4><dl class=dl-horizontal><dt>Name<dd>{{ current_object.name }}<dt>Label<dd>{{ current_object.label }}<dt>Label (Plural)<dd>{{ current_object.labelPlural }}<dt>Key Prefix<dd>{{ current_object.keyPrefix }}</dl></div><div class=col-lg-8 ng-show=current_object.recordTypeInfos><dl class=dl-horizontal><dt>Record Types<dd><ul class=list-unstyled><li ng-repeat="rt in current_object.recordTypeInfos">{{ rt.name }}</li></ul></dl></div></div><div class=row ng-repeat="row in property_list"><div class=col-lg-2 ng-repeat="property in row"><ul class=list-group><li class=list-group-item><i class="fa fa-question pull-right text-muted" ng-show=loading_main></i> <i class="fa fa-check pull-right text-success" ng-show="!loading_main && current_object[property]"></i> <i class="fa fa-remove pull-right text-danger" ng-show="!loading_main && !current_object[property]"></i> {{ property }}</li></ul></div></div></div></div></div></div><div class=panel-group id=fields_accordion><div class="panel panel-default"><div class=panel-heading><h4 class=panel-title><a class=collapse_link ng-click="isFieldsCollapsed = !isFieldsCollapsed" ng-class="{\'collapsed\': isFieldsCollapsed}">Fields</a></h4></div><div id=fields_collapse class="panel-collapse collapse in" collapse=isFieldsCollapsed><div class=panel-body><div class=row><div class="col-lg-3 col-lg-offset-9"><input class=form-control placeholder=Search... ng-model="field_query"></div></div><div class=row><div class=table-responsive><table class="table table-striped"><thead><tr><th>Label <i class=fa ng-class=labelStyle ng-click="fieldsPredicate = \'label\'; fieldsReverse = !fieldsReverse; labelStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; nameStyle = \'fa-sort\'; typeStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><th>API Name <i class=fa ng-class=nameStyle ng-click="fieldsPredicate = \'name\'; fieldsReverse = !fieldsReverse; nameStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; labelStyle = \'fa-sort\'; typeStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><th>Type <i class=fa ng-class=typeStyle ng-click="fieldsPredicate = \'type\'; fieldsReverse = !fieldsReverse; typeStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; labeStyle = \'fa-sort\'; nameStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><th>Description <i class=fa ng-class=descStyle ng-click="fieldsPredicate = \'inlineHelpText\'; fieldsReverse = !fieldsReverse; descStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; labelStyle = \'fa-sort\'; nameStyle = \'fa-sort\'; typeStyle = \'fa-sort\';"></i><th style=width:13px><i class="fa fa-close" ng-click="fieldsPredicate = \'\'; labelStyle = \'fa-sort\'; nameStyle = \'fa-sort\'; typeStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><tbody><tr ng-show=loading_main><td colspan=4><i class="fa fa-circle-o-notch fa-spin"></i> Loading...<tr ng-repeat="field in current_object.fields | orderBy:fieldsPredicate:fieldsReverse | filter:field_query"><td>{{ field.label }}<td>{{ field.name }}<span ng-show="field.type == \'reference\'">({{ field.relationshipName }})</span><td>{{ field.type }} <span ng-show="field.type == \'reference\'">(<span ng-repeat="refTo in field.referenceTo"><a href="#/{{ refTo }}">{{ refTo }}</a>{{ $last ? \'\' : \', \'}}</span>)</span> <span ng-show="field.type == \'string\'">[{{ field.length }}]</span> <span ng-show="field.type == \'textarea\'">- {{ field.extraTypeInfo }} [{{ field.length }}]</span><td colspan=2>{{ field.inlineHelpText }}</table></div></div></div></div></div></div><div class=panel-group id=children_accordion><div class="panel panel-default"><div class=panel-heading><h4 class=panel-title><a class=collapse_link ng-click="isChildrenCollapsed = !isChildrenCollapsed" ng-class="{\'collapsed\': isChildrenCollapsed}">Child Relationships</a></h4></div><div id=children_collapse class="panel-collapse collapse in" collapse=isChildrenCollapsed><div class=panel-body><div class=row><div class="col-lg-3 col-lg-offset-9"><input class=form-control placeholder=Search... ng-model="child_query"></div></div><div class=row><div class=table-responsive><table class="table table-striped"><thead><tr><th>Child Object <i class=fa ng-class=childSObjectStyle ng-click="relationshipsPredicate = \'childSObject\'; relationshipsReverse = !relationshipsReverse; childSObjectStyle = (relationshipsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; rnameStyle = \'fa-sort\'; fieldStyle = \'fa-sort\';"></i><th>Relationship Name <i class=fa ng-class=rnameStyle ng-click="relationshipsPredicate = \'relationshipName\'; relationshipsReverse = !relationshipsReverse; rnameStyle = (relationshipsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; childSObjectStyle = \'fa-sort\'; fieldStyle = \'fa-sort\';"></i><th>Field <i class=fa ng-class=fieldStyle ng-click="relationshipsPredicate = \'field\'; relationshipsReverse = !relationshipsReverse; fieldStyle = (relationshipsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; childSObjectStyle = \'fa-sort\'; rnameStyle = \'fa-sort\';"></i><th class=text-center>Cascade<th class=text-center>Deprecated<th class=text-center>Restricted<th style=width:13px><i class="fa fa-close" ng-click="relationshipsPredicate = \'\'; childSObjectStyle = \'fa-sort\'; rnameStyle = \'fa-sort\'; fieldStyle = \'fa-sort\';"></i><tbody><tr ng-show=loading_main><td colspan=4><i class="fa fa-circle-o-notch fa-spin"></i> Loading...<tr ng-repeat="child in current_object.childRelationships | orderBy:relationshipsPredicate:relationshipsReverse | filter:child_query"><td>{{ child.childSObject }}<td>{{ child.relationshipName }}<td>{{ child.field }}<td class=text-center><i class="fa fa-check text-success" ng-show=child.cascadeDelete></i> <i class="fa fa-remove text-danger" ng-show=!child.cascadeDelete></i><td class=text-center><i class="fa fa-check text-success" ng-show=child.deprecatedAndHidden></i> <i class="fa fa-remove text-danger" ng-show=!child.deprecatedAndHidden></i><td class=text-center colspan=2><i class="fa fa-check text-success" ng-show=child.restrictedDelete></i> <i class="fa fa-remove text-danger" ng-show=!child.restrictedDelete></i></table></div></div></div></div></div></div>'
+                        }
+                   }
+                });
+            }]);
+
+            angular.module('objDescApp').controller('ObjectDetailCtrl', ['$scope', '$stateParams', function ($scope, $stateParams) {
+                'use strict';
+
+                $scope.loading_main = true;
+                $scope.isDescriptionCollapsed = true;
+                $scope.isFieldsCollapsed = false;
+                $scope.isChildrenCollapsed = false;
+
+                $scope.property_list = [
+                    [
+                        'activateable',
+                        'createable',
+                        'custom',
+                        'customSetting',
+                        'deletable',
+                        'deprecatedAndHidden'
+                    ], [
+                        'feedEnabled',
+                        'layoutable',
+                        'mergeable',
+                        'queryable',
+                        'replicateable',
+                        'searchLayoutable'
+                    ], [
+                        'searchable',
+                        'triggerable',
+                        'undeletable',
+                        'updateable'
+                    ]
+                ];
+
+                conn.describe($stateParams.name, function (error_describe, metadata) {
+                    $scope.current_object = metadata;
+                    $scope.fieldsPredicate = '';
+                    $scope.relationshipsPredicate = '';
+                    $scope.labelStyle = 'fa-sort';
+                    $scope.nameStyle = 'fa-sort';
+                    $scope.typeStyle = 'fa-sort';
+                    $scope.descStyle = 'fa-sort';
+                    $scope.childSObjectStyle = 'fa-sort';
+                    $scope.rnameStyle = 'fa-sort';
+                    $scope.fieldStyle = 'fa-sort';
+                    $scope.loading_main = false;
+
+                    $scope.$apply();
+                });
+            }]);
+
+            angular.module('objDescApp').controller('ObjectListCtrl', function ($scope) {
+                'use strict';
+                $scope.loading_sidebar = true;
+
+                conn.describeGlobal(function (error_describe, metadata) {
+                    $scope.objects = metadata.sobjects;
+                    $scope.loading_sidebar = false;
+                    $scope.$apply();
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">Object Description</a>
+                </div>
+                <div class="navbar-collapse collapse">
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-3 col-md-2 sidebar" ng-controller="ObjectListCtrl">
+                    <form class="navbar-form nav-sidebar">
+                        <input type="text" class="form-control" placeholder="Search..." ng-model="query" />
+                    </form>
+                    <ul class="nav nav-sidebar">
+                        <li ng-show="loading_sidebar"><a href="#"><i class="fa fa-circle-o-notch fa-spin"></i> Loading...</a></li>
+                        <li ng-repeat="object in objects | filter:query">
+                            <a ui-sref='object({ name: object.name })'>{{ object.label }}</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" ui-view="body">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+</apex:page>
