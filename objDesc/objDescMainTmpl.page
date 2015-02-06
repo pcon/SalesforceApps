@@ -45,8 +45,8 @@
 							</li>
 						</ul>
 					</div>
-                		</div>
-            		</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -79,7 +79,7 @@
 								<td>{{ field.label }}</td>
 								<td>{{ field.name }}<span ng-show="field.type == 'reference'"> ({{ field.relationshipName }})</span></td>
 								<td>{{ field.type }}
-									<span ng-show="field.type == 'reference'">(<span ng-repeat="refTo in field.referenceTo"><a href="#/{{ refTo }}">{{ refTo }}</a>{{ $last ? '' : ', '}}</span>)</span>
+									<span ng-show="field.type == 'reference'">(<span ng-repeat="refTo in field.referenceTo"><a ui-sref="object({ name: refTo })">{{ refTo }}</a>{{ $last ? '' : ', '}}</span>)</span>
 									<span ng-show="field.type == 'string'">[{{ field.length }}]</span>
 									<span ng-show="field.type == 'textarea'"> - {{ field.extraTypeInfo }} [{{ field.length }}]</span>
 								</td>
@@ -120,7 +120,7 @@
 						<tbody>
 							<tr ng-show="loading_main"><td colspan="4"><i class="fa fa-circle-o-notch fa-spin"></i> Loading...</td></tr>
 							<tr ng-repeat="child in current_object.childRelationships | orderBy:relationshipsPredicate:relationshipsReverse | filter:child_query">
-								<td>{{ child.childSObject }}</td>
+								<td><a ui-sref="object({ name: child.childSObject })">{{ child.childSObject }}</a></td>
 								<td>{{ child.relationshipName }}</td>
 								<td>{{ child.field }}</td>
 								<td class="text-center">
