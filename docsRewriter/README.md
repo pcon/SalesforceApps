@@ -7,6 +7,7 @@ This extension looks for a documentation url that starts with `http://www.salesf
 ##How to install it
 ###Easiest
 * [Install](https://raw.githubusercontent.com/pcon/SalesforceApps/master/packages/docsRewriter.crx) the extension from the packages directory
+
 ###From source
 * Clone the [SalesforceApps](https://github.com/pcon/SalesforceApps) repo
 * Load the unpacked extension
