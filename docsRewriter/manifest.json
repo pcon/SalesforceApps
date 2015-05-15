@@ -1,0 +1,23 @@
+{
+	"name": "Salesforce Docs Rewriter",
+	"short_name": "SFDC DocRewrite",
+	"description": "Rewrites the old docs url to the new docs url",
+	"version": "1.0",
+	"manifest_version": 2,
+	"background": {
+		"scripts": [
+			"background.js"
+		]
+	},
+	"permissions": [
+		"webRequest",
+		"*://www.salesforce.com/us/developer/*",
+		"webRequestBlocking"
+	],
+	"icons": {
+		"16": "icon16.png",
+		"48": "icon48.png",
+		"128": "icon128.png"
+	},
+	"author": "Patrick Connelly"
+}
