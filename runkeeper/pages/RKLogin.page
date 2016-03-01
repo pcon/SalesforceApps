@@ -1,0 +1,3 @@
+<apex:page controller="RKLoginController" action="{!redirectOnCallback}">
+	<a href='{!authUrl}'><img src='http://static1.runkeeper.com/images/assets/connect-grey-white-200x38.png'/></a>
+</apex:page>

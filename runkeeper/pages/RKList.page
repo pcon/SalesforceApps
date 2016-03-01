@@ -1,0 +1,14 @@
+<apex:page controller="RKListController" action="{!ensureHasToken}">
+	<apex:pageBlock>
+		<apex:pageBlockTable value="{!recentActivities}" var="activity">
+			<apex:column>
+				<apex:facet name="header">Date</apex:facet>
+				{!YEAR(DATEVALUE(activity.start_time))}-{!MONTH(DATEVALUE(activity.start_time))}-{!DAY(DATEVALUE(activity.start_time))}
+			</apex:column>
+			<apex:column>
+				<apex:facet name="header">Distance</apex:facet>
+				{!activity.total_distance_mi} mi
+			</apex:column>
+		</apex:pageBlockTable>
+	</apex:pageBlock>
+</apex:page>
