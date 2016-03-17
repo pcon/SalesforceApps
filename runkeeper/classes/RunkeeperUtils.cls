@@ -5,7 +5,7 @@
 */
 public class RunkeeperUtils {
 	/** A map of the month to it's number */
-	private static Map<String, Integer> MONTH_MAP = new Map<String, Integer>{
+	private static Map<String, Integer> MONTH_MAP = new Map<String, Integer> {
 		'Jan' => 1,
 		'Feb' => 2,
 		'Mar' => 3,
@@ -20,17 +20,36 @@ public class RunkeeperUtils {
 		'Dec' => 12
 	};
 
+	/**
+	* Converts the runkeeper date string to a DateTime
+	*
+	* @param date_string The date string
+	* @return The DateTime
+	*/
+	private static DateTime convertStringToDate(String date_string) {
+		List<String> parts = date_string.split(' ');
+		Integer y = Integer.valueOf(parts.get(3));
+		Integer m = MONTH_MAP.get(parts.get(2));
+		Integer d = Integer.valueOf(parts.get(1));
+		List<String> t = parts.get(4).split(':');
+		Integer h = Integer.valueOf(t.get(0));
+		Integer mm = Integer.valueOf(t.get(1));
+		Integer s = Integer.valueOf(t.get(2));
+
+		return DateTime.newInstance(y, m, d, h, mm, s);
+	}
+
 	/** The JSON result from a successful oauth call */
 	public class OAuthResult {
 		/** The access token */
-		public String access_token { get; set; }
+		public String access_token {get; set;}
 
 		/** The token type */
-		public String token_type { get; set; }
+		public String token_type {get; set;}
 	}
 
 	/** The information about an activity */
-	public class Activity {
+	public virtual class Activity {
 		/** The start time */
 		private String start_time;
 
@@ -76,33 +95,87 @@ public class RunkeeperUtils {
 		* @return The start_time in a DateTime format
 		*/
 		public DateTime getStart_time() {
-			List<String> parts = this.start_time.split(' ');
-			Integer y = Integer.valueOf(parts.get(3));
-			Integer m = MONTH_MAP.get(parts.get(2));
-			Integer d = Integer.valueOf(parts.get(1));
-			List<String> t = parts.get(4).split(':');
-			Integer h = Integer.valueOf(t.get(0));
-			Integer mm = Integer.valueOf(t.get(1));
-			Integer s = Integer.valueOf(t.get(2));
-
-			return DateTime.newInstance(y, m, d, h, mm, s);
+			return convertStringToDate(this.start_time);
 		}
 	}
 
-	/** The appication's client id */
-	private static String CLIENT_ID = 'XXXXX';
+	/** A point along a path */
+	public class PathPoint {
+		/** The unix timestamp for the point */
+		public Long timestamp {get; private set;}
 
-	/** The appication's client secret */
-	private static String CLIENT_SECRET = 'YYYYY';
+		/** The altitude of the point */
+		public Double altitude {get; private set;}
 
-	/** The API URL */
-	public static String API_URL = 'https://api.runkeeper.com';
+		/** The longitude of the point */
+		public Double longitude {get; private set;}
 
-	/** The URL for getting the access code */
-	public static String ACCESS_TOKEN_URL = 'https://runkeeper.com/apps/token';
+		/** The latitude of the point */
+		public Double latitude {get; private set;}
 
-	/** The URL for authorizing the request */
-	public static String AUTHORIZE_URL = 'https://runkeeper.com/apps/authorize';
+		/** The type of the point */
+		public String primary_type {get; private set;}
+	}
+
+	/** A full activity */
+	public class FullActivity extends Activity {
+		/** The activity URL */
+		public String activity {get; private set;}
+
+		/** The total climb in meters */
+		public Double climb {get; private set;}
+
+		/** The entry mode */
+		public String entry_mode {get; private set;}
+
+		/** The type of equipment used */
+		public String equipment {get; private set;}
+
+		/** If the activity is live */
+		public Boolean is_live {get; private set;}
+
+		/** The note on the activity */
+		public String notes {get; private set;}
+
+		/** The sharing settings */
+		public String share {get; private set;}
+
+		/** The map sharing settings */
+		public String share_map {get; private set;}
+
+		/** The path for the activity */
+		public List<PathPoint> path {get; private set;}
+	}
+
+	/** A users statistic */
+	public class Stat {
+		/** The type of the statistic */
+		public String stat_type {get; private set;}
+
+		/** The value */
+		public Double value {get; private set;}
+
+		/** The date */
+		private String date_x;
+
+		/**
+		* Converts the date string to a DateTime
+		*
+		* @return The converted date
+		*/
+		public DateTime getDate() {
+			return convertStringToDate(this.date_x);
+		}
+	}
+
+	/** A personal record */
+	public class PersonalRecord {
+		/** The activity type */
+		public String activity_type {get; private set;}
+
+		/** The stats for the activity */
+		public List<Stat> stats {get; private set;}
+	}
 
 	/**
 	* Replaces reserved words in the JSON to help with deserialization
@@ -114,7 +187,8 @@ public class RunkeeperUtils {
 	* @return The updated JSON
 	*/
 	private static String fixReservedWords(String data) {
-		return data.replace('"type"', '"primary_type"');
+		return data.replace('"type"', '"primary_type"')
+			.replace('"date"', '"date_x"');
 	}
 
 	/**
@@ -125,12 +199,12 @@ public class RunkeeperUtils {
 	*/
 	public static String getAuthUrl(String redirect_uri) {
 		Map<String, String> urlParams = new Map<String, String> {
-			'client_id' => CLIENT_ID,
+			'client_id' => RunkeeperConfig.CLIENT_ID,
 			'redirect_uri' => redirect_uri,
 			'response_type' => 'code'
 		};
 
-		PageReference ref = new PageReference(AUTHORIZE_URL);
+		PageReference ref = new PageReference(RunkeeperConfig.AUTHORIZE_URL);
 		ref.getParameters().putAll(urlParams);
 
 		return ref.getUrl();
@@ -147,15 +221,15 @@ public class RunkeeperUtils {
 		List<String> urlParams = new List<String> {
 			'grant_type=authorization_code',
 			'code=' + EncodingUtil.urlEncode(code, 'UTF-8'),
-			'client_id=' + EncodingUtil.urlEncode(CLIENT_ID, 'UTF-8'),
-			'client_secret=' + EncodingUtil.urlEncode(CLIENT_SECRET, 'UTF-8'),
+			'client_id=' + EncodingUtil.urlEncode(RunkeeperConfig.CLIENT_ID, 'UTF-8'),
+			'client_secret=' + EncodingUtil.urlEncode(RunkeeperConfig.CLIENT_SECRET, 'UTF-8'),
 			'redirect_uri=' + EncodingUtil.urlEncode(redirect_uri, 'UTF-8')
 		};
 
 		Http h = new Http();
 
 		HttpRequest req = new HttpRequest();
-		req.setEndpoint(ACCESS_TOKEN_URL);
+		req.setEndpoint(RunkeeperConfig.ACCESS_TOKEN_URL);
 		req.setMethod('POST');
 		req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
 		req.setHeader('Accept', 'application/json');
@@ -175,8 +249,8 @@ public class RunkeeperUtils {
 	* @return the raw JSON data for the request
 	*/
 	private static String getRunkeeperData(String access_token, String content_type, String uri) {
-		String endpoint = API_URL + uri;
-		Http h = new Http();
+		String endpoint = RunkeeperConfig.API_URL + uri;
+			Http h = new Http();
 
 		HttpRequest req = new HttpRequest();
 		req.setEndpoint(endpoint);
@@ -200,5 +274,28 @@ public class RunkeeperUtils {
 		Map<String, Object> dataMap = (Map<String, Object>)(JSON.deserializeUntyped(data));
 
 		return (List<Activity>)(JSON.deserialize((String)(JSON.serialize(dataMap.get('items'))), List<Activity>.class));
+	}
+
+	/**
+	* Gets a full activityfor a given uri
+	*
+	* @param access_token The access token for the user
+	* @param uri The activity URI
+	* @return The activity
+	*/
+	public static FullActivity getActivity(String access_token, String uri) {
+		String data = getRunkeeperData(access_token, 'application/vnd.com.runkeeper.FitnessActivity+json', uri);
+		return (FullActivity)(JSON.deserialize(data, FullActivity.class));
+	}
+
+	/**
+	* Gets a users personal records
+	*
+	* @param access_token The access token for the user
+	* @return A list of personal records
+	*/
+	public static List<PersonalRecord> getRecords(String access_token) {
+		String data = getRunkeeperData(access_token, 'application/vnd.com.runkeeper.Records+json', '/records');
+		return (List<PersonalRecord>)(JSON.deserialize(data, List<PersonalRecord>.class));
 	}
 }
