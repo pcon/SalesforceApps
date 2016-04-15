@@ -7,6 +7,11 @@ A quick and easy way to describe objects using [JSforce](https://jsforce.github.
 * [Read more](https://developer.salesforce.com/blogs/developer-relations/2015/02/using-metadata-api-describe-objects.html) on the Salesforce Developer blog
 * [Read more](https://github.com/pcon/SalesforceApps/tree/master/objDesc) on github
 
+## Node Scripts
+A collection of NodeJS scripts I've written to interact with Salesforce
+
+* [Read more](https://github.com/pcon/SalesforceApps/tree/master/node_scripts) on github
+
 ## Runkeeper Integration
 Some example code and utility class for interacting with Runkeeper from Salesforce
 

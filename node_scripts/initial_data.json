@@ -1,0 +1,144 @@
+{
+    "Insert": [
+        {
+            "ObjectName": "Product__c",
+            "Identifier": "Name",
+            "Records": [
+                {
+                    "Name": "Other",
+                    "Product_Family__c": "Other",
+                    "ChildRecords": [
+                        {
+                            "ObjectName": "Version__c",
+                            "Identifier": "Name",
+                            "Records": [
+                                {
+                                    "Name": "Unknown",
+                                    "Product__c": "<%- Id %>",
+                                    "End_of_Life_Date__c": "2020-01-01T00:00:00.000Z",
+                                    "Supported_Date__c": "2000-01-01T00:00:00.000Z"
+                                }
+                            ]
+                        }
+                    ]
+                },{
+                    "Name": "My Product",
+                    "Product_Family__c": "Middleware",
+                    "ChildRecords": [
+                        {
+                            "ObjectName": "Version__c",
+                            "Identifier": "Name",
+                            "Records": [
+                                {
+                                    "Name": "3.1",
+                                    "Product__c": "<%- Id %>",
+                                    "End_of_Life_Date__c": "2020-01-01T00:00:00.000Z",
+                                    "Supported_Date__c": "2000-01-01T00:00:00.000Z"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }, {
+            "ObjectName": "Account",
+            "Identifier": "AccountNumber",
+            "Records": [
+                {
+                    "Name": "Test Account",
+                    "AccountNumber": 13371337,
+                    "ChildRecords": [
+                        {
+                            "ObjectName": "Contact",
+                            "Identifier": "SSO_Username__c",
+                            "Records": [
+                                {
+                                    "FirstName": "Test",
+                                    "LastName": "Contact 1",
+                                    "SSO_Username__c": "test-contact-1",
+                                    "AccountId": "<%- Id %>",
+                                    "Is_Active__c": true
+                                },{
+                                    "FirstName": "Test",
+                                    "LasteName": "Contact 2",
+                                    "SSO_Username__c": "test-contact-2",
+                                    "AccountId": "<%- Id %>",
+                                    "Is_Active__c": true
+                                }
+                            ]
+                        },{
+                            "ObjectName": "Entitlement",
+                            "Identifier": "Name",
+                            "Records": [
+                                {
+                                    "Name": "Test Entitlement",
+                                    "AccountId": "<%- Id %>",
+                                    "ServiceType__c": "L1-L3",
+                                    "ServiceLevel__c": "Premium",
+                                    "StartDate": "2000-01-01",
+                                    "EndDate": "2020-01-01"
+                                }
+                            ]
+                        },{
+                            "ObjectName": "CaseFolder__c",
+                            "Identifier": "Name",
+                            "Records": [
+                                {
+                                    "Name": "Test group",
+                                    "AccountId__c": "<%- Id %>"
+                                }
+                            ]
+                        }
+                    ]
+                },{
+                    "Name": "ACL Account",
+                    "AccountNumber": 123456,
+                    "ChildRecords": [
+                        {
+                            "ObjectName": "Contact",
+                            "Identifier": "SSO_Username__c",
+                            "Records": [
+                                {
+                                    "FirstName": "ACL",
+                                    "LastName": "Contact 1",
+                                    "SSO_Username__c": "acl-contact-1",
+                                    "AccountId": "<%- Id %>",
+                                    "Is_Active__c": true
+                                },{
+                                    "FirstName": "ACL",
+                                    "LasteName": "Contact 2",
+                                    "SSO_Username__c": "acl-contact-2",
+                                    "AccountId": "<%- Id %>",
+                                    "Is_Active__c": true
+                                }
+                            ]
+                        },{
+                            "ObjectName": "Entitlement",
+                            "Identifier": "Name",
+                            "Records": [
+                                {
+                                    "Name": "Test Entitlement",
+                                    "AccountId": "<%- Id %>",
+                                    "ServiceType__c": "L1-L3",
+                                    "ServiceLevel__c": "Premium",
+                                    "StartDate": "2000-01-01",
+                                    "EndDate": "2020-01-01"
+                                }
+                            ]
+                        },{
+                            "ObjectName": "CaseFolder__c",
+                            "Identifier": "Name",
+                            "Records": [
+                                {
+                                    "Name": "ACL group",
+                                    "AccountId__c": "<%- Id %>"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+
+        }
+    ]
+}

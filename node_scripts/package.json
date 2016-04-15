@@ -1,0 +1,15 @@
+{
+    "name": "pcon-salesforce",
+    "version": "0.0.1",
+    "description": "Scripts to deal with salesforce stuff",
+    "dependencies": {
+        "bunyan": "*",
+        "ini": "*",
+        "jsforce": "*",
+        "jsonfile": "*",
+        "lodash": "*",
+        "minimist": "*",
+        "moment": "*",
+        "q": "*"
+    }
+}

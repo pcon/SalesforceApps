@@ -1,0 +1,19 @@
+/*jslint browser: true, regexp: true */
+/*global module */
+
+module.exports = {
+    config: {
+        logging: {
+            file: '/data/devel/salesforce/salesforce.log'
+        },
+        sfdc: {
+            user: 'user@example.com.sandbox',
+            pass: 'mypassword',
+            login_url: 'https://test.salesforce.com',
+            max_requests: 10
+        },
+        options: {
+            data_file: 'initial_data.json'
+        }
+    }
+};
