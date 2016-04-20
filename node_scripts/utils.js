@@ -124,6 +124,30 @@ var query = function (query) {
     return deferred.promise;
 };
 
+function buildCriteria(criteria_list) {
+    'use strict';
+
+    var result = [],
+        template = lo.template('<%- field %> <%- comparator %> <%- value %>');
+
+    lo.forEach(criteria_list, function (value) {
+        result.push(lo.unescape(template(value)));
+    });
+
+    return result;
+}
+
+var dynamicQuery = function (query_parts) {
+    'use strict';
+
+    var and_criteria = buildCriteria(query_parts.where.and_criteria),
+        template = lo.template('select <%- fields %> from <%- object %> where <%- criteria %>'),
+        fields = lo.join(query_parts.fields, ','),
+        criteria = lo.join(and_criteria, ' and ');
+
+    return query(lo.unescape(template({fields: fields, object: query_parts.object, criteria: criteria})));
+};
+
 var insert = function (object_name, data) {
     'use strict';
 
@@ -258,6 +282,7 @@ var join_parts_unescaped = function (data) {
 
 module.exports = {
     capitalizeFirstLetter: capitalizeFirstLetter,
+    dynamicQuery: dynamicQuery,
     identity: identity,
     insert: insert,
     join_parts: join_parts,

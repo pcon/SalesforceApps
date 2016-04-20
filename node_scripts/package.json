@@ -4,6 +4,9 @@
     "description": "Scripts to deal with salesforce stuff",
     "dependencies": {
         "bunyan": "*",
+        "commander": "*",
+        "csvtojson": "*",
+        "filesize": "*",
         "ini": "*",
         "jsforce": "*",
         "jsonfile": "*",

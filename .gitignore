@@ -1,2 +1,4 @@
 packages/*.pem
 node_scripts/config.js
+node_scripts/node_modules
+node_scripts/dump_dir
