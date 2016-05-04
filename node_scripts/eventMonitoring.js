@@ -374,8 +374,6 @@ var getEventType = function self(data, deferred) {
 
     var row, filename, dirname, m, dir_path, file_path, fs_stats;
 
-    global.logger.debug('Have ' + lo.size(data) + ' events left');
-
     if (lo.isEmpty(data)) {
         deferred.resolve();
     } else {
