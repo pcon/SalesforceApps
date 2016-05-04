@@ -12,8 +12,17 @@ module.exports = {
             login_url: 'https://test.salesforce.com',
             max_requests: 10
         },
+        couch_db: {
+            user: 'coudbuser',
+            pass: 'mypassword',
+            host: 'localhost',
+            db: 'eventlog',
+            port: 5984,
+            batch: 300
+        },
         options: {
-            data_file: 'initial_data.json'
+            data_file: 'initial_data.json',
+            data_dump_dir: '/tmp/'
         }
     }
 };

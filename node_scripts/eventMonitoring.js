@@ -6,6 +6,7 @@
 var Q = require('q');
 var bunyan = require('bunyan');
 var Converter = require('csvtojson').Converter;
+var cradle = require('cradle');
 var filesize = require('filesize');
 var fs = require('fs');
 var lo = require('lodash');
@@ -24,7 +25,7 @@ global.logger = bunyan.createLogger({
             level: 'debug',
             stream: process.stdout
         }, {
-            level: 'warn',
+            level: 'info',
             path: global.config.logging.file
         }
     ]
@@ -45,6 +46,7 @@ app.version('1.0.0')
     .option('-e, --enddate [enddate]', 'The end date')
     .option('--json', 'Output files as json')
     .option('--csv', 'Output files as csv')
+    .option('--couchdb', 'Outputs to couchdb')
     .option('--env [env]', 'The environment name')
     .option('--dumpdir [dir]', 'The directory to dump files into')
     .parse(process.argv);
@@ -80,6 +82,8 @@ var parseArguments = function () {
 
     if (app.json) {
         app_config.output_type = 'json';
+    } else if (app.couchdb) {
+        app_config.output_type = 'couchdb';
     } else if (app.csv) {
         app_config.output_type = 'csv';
     }
@@ -103,8 +107,26 @@ var parseArguments = function () {
             global.logger.debug(error);
             process.exit(-1);
         }
+    }
 
-        deferred.resolve();
+    if (app_config.output_type === 'couchdb') {
+        app_config.couchdb = new (cradle.Connection)(global.config.couch_db.host, global.config.couch_db.port, {cache: false, auth: {username: global.config.couch_db.user, password: global.config.couch_db.pass}}).database(global.config.couch_db.db);
+
+        app_config.couchdb.exists(function (error, exists) {
+            if (error) {
+                deferred.reject(error);
+            } else if (!exists) {
+                app_config.couchdb.create(function (create_error) {
+                    if (create_error) {
+                        deferred.reject(error);
+                    } else {
+                        deferred.resolve();
+                    }
+                });
+            } else {
+                deferred.resolve();
+            }
+        });
     } else {
         deferred.resolve();
     }
@@ -138,6 +160,149 @@ var queryEventTypes = function () {
 };
 
 /**
+ * Writes the data to the file
+ *
+ * @param {string} filename - The file to write to
+ * @param {string} data - The data to write
+ */
+var writeToFile = function (filename, data) {
+    'use strict';
+
+    var deferred = Q.defer();
+
+    fs.appendFile(filename, data, function (error) {
+        if (error) {
+            deferred.reject(error);
+        } else {
+            deferred.resolve();
+        }
+    });
+
+    return deferred.promise;
+};
+
+/**
+ * Writes the data to a couchdb
+ *
+ * @param {Object} data - The object to write
+ */
+var writeToCouchDB = function (data) {
+    'use strict';
+
+    var deferred = Q.defer();
+
+    app_config.couchdb.save(data, function (error, result) {
+        if (error) {
+            global.logger.error(error);
+            deferred.reject(error);
+        } else {
+            global.logger.debug('Saved ' + lo.size(result) + ' records to couchdb');
+            deferred.resolve();
+        }
+    });
+
+    return deferred.promise;
+};
+
+/**
+ * Downloads the CSV and converts it to json
+ *
+ * @param {string} filename - The filename to write to
+ * @param {string} log_url - The URL to download
+ * @param {string} token - The bearer token
+ */
+var processJSON = function (filename, log_url, token) {
+    'use strict';
+
+    var deferred = Q.defer(),
+        batch_count = 0,
+        batch = [],
+        promises = [],
+        converter_options = {
+            constructResult: false,
+            ignoreEmpty: true
+        },
+        csvConvert = new Converter(converter_options);
+
+    csvConvert.on('record_parsed', function (json_data) {
+        if (app_config.output_type === 'json') {
+            promises.push(writeToFile(filename, JSON.stringify(json_data) + '\n'));
+        } else if (app_config.output_type === 'couchdb') {
+            if (global.config.couch_db.batch) {
+                batch_count += 1;
+
+                if (batch_count === global.config.couch_db.batch) {
+                    batch.push(json_data);
+                    promises.push(writeToCouchDB(batch));
+                    batch_count = 0;
+                    batch = [];
+                } else {
+                    batch.push(json_data);
+                }
+            } else {
+                promises.push(writeToCouchDB(json_data));
+            }
+        }
+    }).on('end_parsed', function () {
+        if (!lo.isEmpty(batch)) {
+            promises.push(writeToCouchDB(batch));
+            batch_count = 0;
+            batch = [];
+        }
+
+        Q.all(promises)
+            .then(function () {
+                global.logger.info(filename + ' - Write complete');
+
+                deferred.resolve();
+            }).catch(function (error) {
+                deferred.reject(error);
+            });
+    }).on('error', function () {
+        global.logger.error('Error parsing CSV file.  Writing batch of ' + lo.size(batch));
+
+        if (!lo.isEmpty()) {
+            promises.push(writeToCouchDB(batch));
+        }
+
+        batch_count = 0;
+        batch = [];
+    });
+
+    request.get(log_url, {auth: {bearer: token}})
+        .pipe(csvConvert)
+        .on('error', function (error) {
+            deferred.reject(error);
+        });
+
+    return deferred.promise;
+};
+
+/**
+ * Downloads the CSV and writes it to the file
+ *
+ * @param {string} filename - The file to write to
+ * @param {string} log_url - The URL to read from
+ * @param {string} token - The bearer token to use
+ */
+var processCSV = function (filename, log_url, token) {
+    'use strict';
+
+    var deferred = Q.defer();
+
+    request.get(log_url, {auth: {bearer: token}})
+        .pipe(fs.createWriteStream(filename))
+        .on('finish', function () {
+            global.logger.info(filename + ' - Write complete');
+        }).on('error', function (error) {
+            global.logger.error(error);
+            deferred.reject(error);
+        });
+
+    return deferred.promise;
+};
+
+/**
  * Downloads a specific event log
  *
  * @param {string} filename - The file to save the data to
@@ -147,12 +312,7 @@ var getEventLog = function (filename, uri) {
     'use strict';
 
     var log_url,
-        deferred = Q.defer(),
-        converter_options = {
-            constructResult: false,
-            ignoreEmpty: true
-        },
-        csvConvert = new Converter(converter_options);
+        deferred = Q.defer();
 
     global.logger.debug(filename + ' - Writing ' + uri);
 
@@ -160,30 +320,64 @@ var getEventLog = function (filename, uri) {
         .then(function (conn) {
             log_url = url.resolve(conn.instanceUrl, uri);
 
-            csvConvert.on('record_parsed', function (json_data) {
-                fs.appendFile(filename, JSON.stringify(json_data) + '\n', function (error) {
-                    deferred.reject(error);
-                });
-            }).on('end_parsed', function () {
-                global.logger.debug(filename + ' - Write complete');
-            });
-
-            if (app_config.output_type === 'json') {
-                request.get(log_url, {auth: {bearer: conn.accessToken}})
-                    .pipe(csvConvert)
-                    .on('error', function (error) {
+            if (app_config.output_type === 'json' || app_config.output_type === 'couchdb') {
+                processJSON(filename, log_url, conn.accessToken)
+                    .then(function () {
+                        deferred.resolve();
+                    }).catch(function (error) {
                         deferred.reject(error);
                     });
-            } else {
-                request.get(log_url, {auth: {bearer: conn.accessToken}})
-                    .pipe(fs.createWriteStream(filename))
-                    .on('error', function (error) {
+            } else if (app_config.output_type === 'csv') {
+                processCSV(filename, log_url, conn.accessToken)
+                    .then(function () {
+                        deferred.resolve();
+                    }).catch(function (error) {
                         deferred.reject(error);
                     });
             }
         });
 
     return deferred.promise;
+};
+
+/**
+ * Recursively gets the first event type
+ *
+ * @param {Object[]} data - A list of the EventLogFile records to process
+ * @param {Object} deferred - The Q promise to handle
+ */
+var getEventType = function self(data, deferred) {
+    'use strict';
+
+    var row, filename, m;
+
+    if (lo.isEmpty(data)) {
+        deferred.resolve();
+    } else {
+        row = lo.head(data);
+
+        m = moment.utc(row.LogDate);
+        if (app_config.output_type === 'couchdb') {
+            filename = m.format('YYYY-MM-DD') + '-' + row.EventType;
+        } else {
+            filename = m.format('YYYY-MM-DD') + '-' + row.EventType + '.' + app_config.output_type;
+        }
+
+        // NOTE: The filesize here is for the CSV file.  Converting it to json almost doubles the total on disk filesize
+        global.logger.info('Fetching ' + filesize(row.LogFileLength) + ' file for ' + row.EventType + ' => ' + filename);
+
+        if (global.config.options.data_dump_dir && app_config.output_type !== 'couchdb') {
+            filename = path.join(global.config.options.data_dump_dir, filename);
+        }
+
+        getEventLog(filename, row.LogFile)
+            .then(function () {
+                self(lo.slice(data, 1), deferred);
+            }).catch(function (error) {
+                global.logger.error('Got error "' + error.message + '". Continuing.');
+                self(lo.slice(data, 1), deferred);
+            });
+    }
 };
 
 /**
@@ -194,29 +388,11 @@ var getEventLog = function (filename, uri) {
 var getEventTypes = function (data) {
     'use strict';
 
-    var filename, m,
-        promises = [],
-        deferred = Q.defer();
+    var deferred = Q.defer();
 
     global.logger.info('Found ' + lo.size(data) + ' Event Log Files');
 
-    lo.forEach(data, function (row) {
-        m = moment(row.LogDate);
-        filename = m.format('YYYY-MM-DD') + '-' + row.EventType + '.' + app_config.output_type;
-        // NOTE: The filesize here is for the CSV file.  Converting it to json almost doubles the total on disk filesize
-        global.logger.info('Fetching ' + filesize(row.LogFileLength) + ' file for ' + row.EventType + ' => ' + filename);
-
-        if (global.config.options.data_dump_dir) {
-            filename = path.join(global.config.options.data_dump_dir, filename);
-        }
-
-        promises.push(getEventLog(filename, row.LogFile));
-    });
-
-    Q.allSettled(promises)
-        .then(function () {
-            deferred.resolve();
-        });
+    getEventType(data, deferred);
 
     return deferred.promise;
 };

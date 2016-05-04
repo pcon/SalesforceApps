@@ -1,0 +1,12 @@
+{
+    "_id": "_design/view",
+    "language": "javascript",
+    "views": {
+        "by_date": {
+            "map": "function(doc) { emit([new Date(doc.TIMESTAMP_DERIVED).toISOString().split('T')[0], new Date(doc.TIMESTAMP_DERIVED).toISOString().split('T')[1].split(':')[0],doc.EVENT_TYPE, doc.USER_ID_DERIVED], doc); }"
+        },
+        "by_user": {
+            "map": "function(doc) { emit([doc.USER_ID_DERIVED, new Date(doc.TIMESTAMP_DERIVED).toISOString().split('T')[0], new Date(doc.TIMESTAMP_DERIVED).toISOString().split('T')[1].split(':')[0],doc.EVENT_TYPE], doc); }"
+        }
+    }
+}

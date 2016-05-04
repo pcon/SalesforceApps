@@ -5,6 +5,7 @@
     "dependencies": {
         "bunyan": "*",
         "commander": "*",
+        "cradle": "*",
         "csvtojson": "*",
         "filesize": "*",
         "ini": "*",
