@@ -279,9 +279,29 @@ var join_parts_unescaped = function (data) {
     return result.join(',');
 };
 
+/*jslint stupid: true, bitwise: true*/
+var deleteFolderRecursive = function (p) {
+    'use strict';
+
+    if (fs.existsSync(p)) {
+        fs.readdirSync(p).forEach(function (file) {
+            var curPath = path.join(p, file);
+
+            if (fs.lstatSync(curPath).isDirectory()) {
+                deleteFolderRecursive(curPath);
+            } else {
+                fs.unlinkSync(curPath);
+            }
+        });
+
+        fs.rmdirSync(p);
+    }
+};
+/*jslint stupid: false, bitwise: false*/
 
 module.exports = {
     capitalizeFirstLetter: capitalizeFirstLetter,
+    deleteFolderRecursive: deleteFolderRecursive,
     dynamicQuery: dynamicQuery,
     identity: identity,
     insert: insert,
