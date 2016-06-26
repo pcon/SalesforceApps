@@ -43,10 +43,7 @@ public virtual class OAuthController {
 		String body = String.join(urlParams, '&');
 		req.setBody(body);
 
-		System.debug(System.LoggingLevel.ERROR, body);
-
 		HttpResponse res = h.send(req);
-		System.debug(System.LoggingLevel.ERROR, res);
 		return (OAuthResult)(JSON.deserialize(res.getBody(), OAuthResult.class));
 	}
 

@@ -1,0 +1,4 @@
+<apex:page controller="BoxController" action="{!redirectOnCallback}">
+    <apex:outputPanel rendered="{!NOT(hasToken)}"><a href='{!authUrl}'>Login</a></apex:outputPanel>
+    <apex:outputPanel rendered="{!hasToken}">Already has token</apex:outputPanel>
+</apex:page>
