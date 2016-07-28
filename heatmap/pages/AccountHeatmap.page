@@ -1,0 +1,77 @@
+<apex:page applyBodyTag="false" applyHtmlTag="false" showHeader="false" standardController="Account" extensions="AccountHeatmap">
+	<html>
+		<head>
+			<link rel="stylesheet" href="{!URLFOR($Resource.heatmap, 'leaflet.css')}"/>
+			<apex:includeScript value="{!URLFOR($Resource.heatmap, 'leaflet.js')}"/>
+			<apex:includeScript value="{!URLFOR($Resource.heatmap, 'heatmap.min.js')}"/>
+			<apex:includeScript value="{!URLFOR($Resource.heatmap, 'leaflet-heatmap.js')}"/>
+			<style>
+				.demo-wrapper {
+					height: 390px;
+					border: 3px solid black;
+				}
+				.heatmap {
+					width: 100%;
+					height: 100%;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="demo-wrapper">
+				<div class="heatmap" id="map-canvas"></div>
+			</div>
+			<script type="text/javascript">
+				Visualforce.remoting.Manager.invokeAction(
+					'{!$RemoteAction.AccountHeatmap.getContactGeos}',
+					"{!Id}",
+					function (result, event) {
+						if (event.status) {
+							var testData = {
+								max: 8,
+								data:[]
+							};
+
+							for (var i = 0; i < result.length; i++) {
+								if (result[i].lat !== undefined) {
+									testData.data.push({
+										lat: result[i].lat,
+										lng: result[i].lng,
+										count: result[i].count
+									});
+								}
+							}
+
+							var baseLayer = L.tileLayer(
+								'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+									attribution: '...',
+									maxZoom: 18
+								}
+							);
+
+							var cfg = {
+								"radius": 2,
+								"maxOpacity": .8,
+								"scaleRadius": true,
+								"useLocalExtrema": true,
+								latField: 'lat',
+								lngField: 'lng',
+								valueField: 'count'
+							};
+
+							var heatmapLayer = new HeatmapOverlay(cfg);
+
+							var map = new L.Map('map-canvas', {
+								center: new L.LatLng(37.0902, -95.7129),
+								zoom: 4,
+								layers: [baseLayer, heatmapLayer]
+							});
+
+							heatmapLayer.setData(testData);
+						}
+					},
+					{escape: true}
+				);
+			</script>
+		</body>
+	</html>
+</apex:page>
