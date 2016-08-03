@@ -60,7 +60,7 @@
                                     "Is_Active__c": true
                                 },{
                                     "FirstName": "Test",
-                                    "LasteName": "Contact 2",
+                                    "LastName": "Contact 2",
                                     "SSO_Username__c": "test-contact-2",
                                     "AccountId": "<%- Id %>",
                                     "Is_Active__c": true
@@ -106,7 +106,7 @@
                                     "Is_Active__c": true
                                 },{
                                     "FirstName": "ACL",
-                                    "LasteName": "Contact 2",
+                                    "LastName": "Contact 2",
                                     "SSO_Username__c": "acl-contact-2",
                                     "AccountId": "<%- Id %>",
                                     "Is_Active__c": true
