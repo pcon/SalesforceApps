@@ -23,7 +23,7 @@
                     url: '/',
                     views: {
                         "body": {
-                            template: '<h2>Select an object for more information</h2>'
+                            template: '<div class="slds-text-heading_large slds-m-around_large">Select an object for more information</div>'
                         }
                     }
                 })
