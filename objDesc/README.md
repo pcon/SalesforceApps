@@ -1,31 +1,31 @@
-#Object Describe Browser
+# Object Describe Browser
 
 When working with a large organization, you get to a point where you have so many objects and so many fields that it can be almost impossible to keep track of them all.  It can be very time consuming to dig through the setup menus to find field and relationship names.  To help combat this you can use [JSforce](https://jsforce.github.io/) and [Angular](https://angularjs.org/) to write a single page app to quickly visualize all of your objects and the information about them.
 
-###Metadata API
+### Metadata API
 The Metadata API can be a very powerful tool that can be used to describe lots of information about your organization's objects.  As great as the Metadata API is, it can be a very daunting thing to a new developer interacting with the platform.  This is why I chose to use [JSforce's](https://jsforce.github.io/document/#metadata-api) implementation of the Metadata API.  Not only can you easily use it from inside of VisualForce with Javascript, but you can also use it with [node.js](http://nodejs.org/), Canvas or my personal favorite way the command line.
 
-##A Tour
+## A Tour
 
-###Object List
+### Object List
 All of your objects are listed and quickly filterable
 
 ![Object List](https://raw.githubusercontent.com/pcon/SalesforceApps/master/documentation/img/objDesc_list.png)
 
-###Object Description
+### Object Description
 After selecting an object from the side nav bar you can see lots of information about the object
 
 ![Object Description](https://raw.githubusercontent.com/pcon/SalesforceApps/master/documentation/img/objDesc_description.png)
 
-###Object Fields
+### Object Fields
 All of the fields, their API name, type and description are also displayed and are filterable and sortable
 
 ![Object Fields](https://raw.githubusercontent.com/pcon/SalesforceApps/master/documentation/img/objDesc_fields.png)
 
-###Object Relationships
+### Object Relationships
 All of the related objects are also listed including the elusive relationship name
 
-![Object Relationships](https://raw.githubusercontent.com/pcon/SalesforceApps/master/documentation/img/objDesc_relathinship.png)
+![Object Relationships](https://raw.githubusercontent.com/pcon/SalesforceApps/master/documentation/img/objDesc_relationship.png)
 
 ## How to Install it
 
@@ -144,7 +144,7 @@ angular.module('objDescApp').controller('ObjectDetailCtrl', ['$scope', '$statePa
 ```
 The code is called when we have an object and we want to get it's information.  The `describe` method of JSforce returns all of the metadata for the requested object (stored in `$stateParams.name`).  This then gets stored as `$scope.current_object` for us to use in the display.
 
-##Conclusion
+## Conclusion
 This app shows how you can display lots of important data about your organizations metadata with very little effort.  With the framework setup here, the sky is the limit since you have almost full access to almost all of the APIs that the Salesforce platform offers.
 
 [JSforce Documentation](https://jsforce.github.io/document/)
