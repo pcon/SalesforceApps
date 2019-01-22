@@ -2,3 +2,5 @@ packages/*.pem
 node_scripts/config.js
 node_scripts/node_modules
 node_scripts/dump_dir
+cdc_example/node_modules
+cdc_example/package-lock.json
