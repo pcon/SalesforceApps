@@ -1,21 +1,18 @@
 <apex:page docType="html-5.0" showHeader="false" applyBodyTag="false" applyHtmlTag="false" standardStylesheets="false">
     <html ng-app="objDescApp">
-    <head>
-        <title>Object Description</title>
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
-        <style>body{padding-top:50px}.sub-header{padding-bottom:10px;border-bottom:1px solid #eee}.navbar-fixed-top{border:0}.sidebar{display:none}@media (min-width:768px){.sidebar{position:fixed;top:51px;bottom:0;left:0;z-index:1000;display:block;padding:20px;overflow-x:hidden;overflow-y:auto;background-color:#f5f5f5;border-right:1px solid #eee}}.nav-sidebar{margin-right:-21px;margin-bottom:20px;margin-left:-20px}.nav-sidebar>li>a{padding-right:20px;padding-left:20px}.nav-sidebar>.active>a,.nav-sidebar>.active>a:focus,.nav-sidebar>.active>a:hover{color:#fff;background-color:#428bca}.main{padding:20px}@media (min-width:768px){.main{padding-right:40px;padding-left:40px}}.main .page-header{margin-top:0}.placeholders{margin-bottom:30px;text-align:center}.placeholders h4{margin-bottom:0}.placeholder{margin-bottom:20px}.placeholder img{display:inline-block;border-radius:50%}.panel-heading a:after{font-family:'Glyphicons Halflings';content:"\e114";float:right;color:grey}.panel-heading a.collapsed:after{content:"\e080"}</style>
+        <head>
+            <title>Object Description</title>
+            <apex:slds />
+            <style>html, body {height: 100%;} #main-container, #side-nav {min-height: 100%} .slds-scope .slds-nav-vertical__action:hover{background: rgb(22, 50, 92) !important;}</style>
 
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-        <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.10/angular.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.12.0/ui-bootstrap-tpls.min.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/jsforce/1.3.1/jsforce.min.js"></script>
-        <script>
+            <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.10/angular.min.js"></script>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js"></script>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/jsforce/1.3.1/jsforce.min.js"></script>
+            <script>
             var conn = new jsforce.Connection({accessToken: '{!$API.Session_Id}'});
 
-            angular.module('objDescApp', ['ui.router', 'ui.bootstrap']);
+            angular.module('objDescApp', ['ui.router']);
 
             angular.module('objDescApp').config(['$stateProvider', '$urlRouterProvider', function ($stateProvider, $urlRouterProvider) {
                 'use strict';
@@ -23,21 +20,21 @@
 
                 $stateProvider
                 .state('main', {
-                   url: '/',
-                   views: {
+                    url: '/',
+                    views: {
                         "body": {
-                            template: '<h2>Select an object for more information</h2>'
+                            template: '<div class="slds-text-heading_large slds-m-around_large">Select an object for more information</div>'
                         }
-                   }
+                    }
                 })
                 .state('object', {
-                   url: '/{name}',
-                   views: {
+                    url: '/{name}',
+                    views: {
                         "body": {
                             controller: 'ObjectDetailCtrl',
-                            template: '<h1 class=page-header ng-show=loading_main><i class="fa fa-circle-o-notch fa-spin"></i> Loading</h1><h1 class=page-header ng-hide=loading_main>{{ current_object.label }}</h1><div class=panel-group id=description_accordion><div class="panel panel-default"><div class=panel-heading><h4 class=panel-title><a class=collapse_link ng-click="isDescriptionCollapsed = !isDescriptionCollapsed" ng-class="{\'collapsed\': isDescriptionCollapsed}">Description</a></h4></div><div id=description_collapse class="panel-collapse collapse" collapse=isDescriptionCollapsed><div class=panel-body><div class=row><div class=col-lg-4><dl class=dl-horizontal><dt>Name<dd>{{ current_object.name }}<dt>Label<dd>{{ current_object.label }}<dt>Label (Plural)<dd>{{ current_object.labelPlural }}<dt>Key Prefix<dd>{{ current_object.keyPrefix }}</dl></div><div class=col-lg-8 ng-show=current_object.recordTypeInfos><dl class=dl-horizontal><dt>Record Types<dd><ul class=list-unstyled><li ng-repeat="rt in current_object.recordTypeInfos">{{ rt.name }}</li></ul></dl></div></div><div class=row ng-repeat="row in property_list"><div class=col-lg-2 ng-repeat="property in row"><ul class=list-group><li class=list-group-item><i class="fa fa-question pull-right text-muted" ng-show=loading_main></i> <i class="fa fa-check pull-right text-success" ng-show="!loading_main && current_object[property]"></i> <i class="fa fa-remove pull-right text-danger" ng-show="!loading_main && !current_object[property]"></i> {{ property }}</li></ul></div></div></div></div></div></div><div class=panel-group id=fields_accordion><div class="panel panel-default"><div class=panel-heading><h4 class=panel-title><a class=collapse_link ng-click="isFieldsCollapsed = !isFieldsCollapsed" ng-class="{\'collapsed\': isFieldsCollapsed}">Fields</a></h4></div><div id=fields_collapse class="panel-collapse collapse in" collapse=isFieldsCollapsed><div class=panel-body><div class=row><div class="col-lg-3 col-lg-offset-9"><input class=form-control placeholder=Search... ng-model="field_query"></div></div><div class=row><div class=table-responsive><table class="table table-striped"><thead><tr><th>Label <i class=fa ng-class=labelStyle ng-click="fieldsPredicate = \'label\'; fieldsReverse = !fieldsReverse; labelStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; nameStyle = \'fa-sort\'; typeStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><th>API Name <i class=fa ng-class=nameStyle ng-click="fieldsPredicate = \'name\'; fieldsReverse = !fieldsReverse; nameStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; labelStyle = \'fa-sort\'; typeStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><th>Type <i class=fa ng-class=typeStyle ng-click="fieldsPredicate = \'type\'; fieldsReverse = !fieldsReverse; typeStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; labeStyle = \'fa-sort\'; nameStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><th>Description <i class=fa ng-class=descStyle ng-click="fieldsPredicate = \'inlineHelpText\'; fieldsReverse = !fieldsReverse; descStyle = (fieldsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; labelStyle = \'fa-sort\'; nameStyle = \'fa-sort\'; typeStyle = \'fa-sort\';"></i><th style=width:13px><i class="fa fa-close" ng-click="fieldsPredicate = \'\'; labelStyle = \'fa-sort\'; nameStyle = \'fa-sort\'; typeStyle = \'fa-sort\'; descStyle = \'fa-sort\';"></i><tbody><tr ng-show=loading_main><td colspan=4><i class="fa fa-circle-o-notch fa-spin"></i> Loading...<tr ng-repeat="field in current_object.fields | orderBy:fieldsPredicate:fieldsReverse | filter:field_query"><td>{{ field.label }}<td>{{ field.name }}<span ng-show="field.type == \'reference\'">({{ field.relationshipName }})</span><td>{{ field.type }} <span ng-show="field.type == \'reference\'">(<span ng-repeat="refTo in field.referenceTo"><a ui-sref="object({ name: refTo })">{{ refTo }}</a>{{ $last ? \'\' : \', \'}}</span>)</span> <span ng-show="field.type == \'string\'">[{{ field.length }}]</span> <span ng-show="field.type == \'textarea\'">- {{ field.extraTypeInfo }} [{{ field.length }}]</span><td colspan=2>{{ field.inlineHelpText }}</table></div></div></div></div></div></div><div class=panel-group id=children_accordion><div class="panel panel-default"><div class=panel-heading><h4 class=panel-title><a class=collapse_link ng-click="isChildrenCollapsed = !isChildrenCollapsed" ng-class="{\'collapsed\': isChildrenCollapsed}">Child Relationships</a></h4></div><div id=children_collapse class="panel-collapse collapse in" collapse=isChildrenCollapsed><div class=panel-body><div class=row><div class="col-lg-3 col-lg-offset-9"><input class=form-control placeholder=Search... ng-model="child_query"></div></div><div class=row><div class=table-responsive><table class="table table-striped"><thead><tr><th>Child Object <i class=fa ng-class=childSObjectStyle ng-click="relationshipsPredicate = \'childSObject\'; relationshipsReverse = !relationshipsReverse; childSObjectStyle = (relationshipsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; rnameStyle = \'fa-sort\'; fieldStyle = \'fa-sort\';"></i><th>Relationship Name <i class=fa ng-class=rnameStyle ng-click="relationshipsPredicate = \'relationshipName\'; relationshipsReverse = !relationshipsReverse; rnameStyle = (relationshipsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; childSObjectStyle = \'fa-sort\'; fieldStyle = \'fa-sort\';"></i><th>Field <i class=fa ng-class=fieldStyle ng-click="relationshipsPredicate = \'field\'; relationshipsReverse = !relationshipsReverse; fieldStyle = (relationshipsReverse) ? \'fa-sort-up\' : \'fa-sort-down\'; childSObjectStyle = \'fa-sort\'; rnameStyle = \'fa-sort\';"></i><th class=text-center>Cascade<th class=text-center>Deprecated<th class=text-center>Restricted<th style=width:13px><i class="fa fa-close" ng-click="relationshipsPredicate = \'\'; childSObjectStyle = \'fa-sort\'; rnameStyle = \'fa-sort\'; fieldStyle = \'fa-sort\';"></i><tbody><tr ng-show=loading_main><td colspan=4><i class="fa fa-circle-o-notch fa-spin"></i> Loading...<tr ng-repeat="child in current_object.childRelationships | orderBy:relationshipsPredicate:relationshipsReverse | filter:child_query"><td><a ui-sref="object({ name: child.childSObject })">{{ child.childSObject }}</a><td>{{ child.relationshipName }}<td>{{ child.field }}<td class=text-center><i class="fa fa-check text-success" ng-show=child.cascadeDelete></i> <i class="fa fa-remove text-danger" ng-show=!child.cascadeDelete></i><td class=text-center><i class="fa fa-check text-success" ng-show=child.deprecatedAndHidden></i> <i class="fa fa-remove text-danger" ng-show=!child.deprecatedAndHidden></i><td class=text-center colspan=2><i class="fa fa-check text-success" ng-show=child.restrictedDelete></i> <i class="fa fa-remove text-danger" ng-show=!child.restrictedDelete></i></table></div></div></div></div></div></div>'
+                            template: '<div class="slds-page-header"><div class="slds-media"><div class="slds-media__body"><h1 class="slds-page-header__title slds-truncate slds-align-middle" title="{{ current_object.label }}" ng-hide="loading_main">{{ current_object.label }}</h1><h1 class="slds-page-header__title slds-truncate slds-align-middle" title="{{ current_object.label }}" ng-show="loading_main"><i class="fa fa-circle-o-notch fa-spin"></i> Loading</h1></div></div></div><div class="slds-p-around_small"><div class="slds-section" ng-class="{\'slds-is-closed\': isDescriptionCollapsed, \'slds-is-open\': !isDescriptionCollapsed}"><h3 class="slds-section__title" ng-click="isDescriptionCollapsed = !isDescriptionCollapsed"><button aria-controls="description_accordion" aria-expanded="true" class="slds-button slds-section__title-action"><svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#switch" /></svg><span class="slds-truncate" title="Description">Description</span></button></h3><div aria-hidden="false" id="description_accordion" class="slds-section__content"><div class="slds-grid slds-wrap"><div class="slds-size_4-of-12 slds-p-around_large"><dl class="slds-list_horizontal slds-wrap"><dt class="slds-item_label slds-text-color_weak slds-truncate">Name</dt><dd class="slds-item_detail slds-truncate">{{ current_object.name }}</dd><dt class="slds-item_label slds-text-color_weak slds-truncate">Label</dt><dd class="slds-item_detail slds-truncate">{{ current_object.label }}</dd><dt class="slds-item_label slds-text-color_weak slds-truncate">Label (Plural)</dt><dd class="slds-item_detail slds-truncate">{{ current_object.labelPlural }}</dd><dt class="slds-item_label slds-text-color_weak slds-truncate">Key Prefix</dt><dd class="slds-item_detail slds-truncate">{{ current_object.keyPrefix }}</dd></dl></div><div class="slds-size_8-of-12 slds-p-around_large" ng-show="current_object.recordTypeInfos"><dl class="dl-horizontal"><dt class="slds-item_label slds-text-color_weak slds-truncate">Record Types</dt><dd class="slds-item_detail slds-truncate"><ul class="list-unstyled"><li ng-repeat="rt in current_object.recordTypeInfos">{{ rt.name }}</li></ul></dd></dl></div></div><div class="slds-grid slds-wrap" ng-repeat="row in property_list"><div class="slds-size_2-of-12" ng-repeat="property in row"><ul><li class="slds-box slds-m-around_small slds-truncate" style="padding: .50rem;">{{ property }}<button class="slds-button slds-button_icon slds-button_icon slds-float_right"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close" ng-show="current_object[property]" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check" ng-show="!current_object[property]" /></svg></button></li></ul></div></div></div></div><div class="slds-section" ng-class="{\'slds-is-closed\': isFieldsCollapsed, \'slds-is-open\': !isFieldsCollapsed}"><h3 class="slds-section__title" ng-click="isFieldsCollapsed = !isFieldsCollapsed"><button aria-controls="fields_accordion" aria-expanded="true" class="slds-button slds-section__title-action"><svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#switch" /></svg><span class="slds-truncate" title="Fields">Fields</span></button></h3><div aria-hidden="false" id="fields_accordion" class="slds-section__content"><div class="slds-grid slds-wrap"><div class="slds-form-element slds-size_12-of-12 slds-p-bottom_small"><div class="slds-form-element__control slds-float_right"><input type="text" id="field_search" class="slds-input" placeholder="Search..." ng-model="field_query" /></div></div><table class="slds-table slds-table_bordered slds-max-medium-table_stacked-horizontal slds-no-row-hover slds-table_striped"><thead><tr class="slds-text-title_caps"><th scope="col"  ng-click="setFieldSort(\'label\');">Label<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showFieldSort(\'label\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!fieldsReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="fieldsReverse" /></svg><span class="slds-assistive-text">Sort</span></button></th><th scope="col"  ng-click="setFieldSort(\'name\');">API Name<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showFieldSort(\'name\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!fieldsReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="fieldsReverse" /></svg><span class="slds-assistive-text">Sort</span></button></th><th scope="col"  ng-click="setFieldSort(\'type\');">Type<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showFieldSort(\'type\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!fieldsReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="fieldsReverse" /></svg><span class="slds-assistive-text">Sort</span></button></th><th scope="col"  ng-click="setFieldSort(\'inlineHelpText\');">Description<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showFieldSort(\'inlineHelpText\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!fieldsReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="fieldsReverse" /></svg><span class="slds-assistive-text">Sort</span></button><button class="slds-button slds-button_icon slds-button_icon slds-float_right" title="Clear" ng-click="clearFieldSort();"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close" /></svg><span class="slds-assistive-text">Clear</span></button></th></tr></thead><tbody><tr ng-show="loading_main"><td colspan="4"><i class="fa fa-circle-o-notch fa-spin"></i> Loading...</td></tr><tr ng-repeat="field in current_object.fields | orderBy:fieldsPredicate:fieldsReverse | filter:field_query"><td data-label="Field Label">{{ field.label }}</td><td data-label="Field Name">{{ field.name }}<span ng-show="field.type == \'reference\'"> ({{ field.relationshipName }})</span></td><td data-label="Field Type">{{ field.type }}<span ng-show="field.type == \'reference\'">(<span ng-repeat="refTo in field.referenceTo"><a ui-sref="object({ name: refTo })">{{ refTo }}</a>{{ $last ? \'\' : \', \'}}</span>)</span><span ng-show="field.type == \'string\'">[{{ field.length }}]</span><span ng-show="field.type == \'textarea\'"> - {{ field.extraTypeInfo }} [{{ field.length }}]</span></td><td data-label="Field Description" colspan="2">{{ field.inlineHelpText }}</td></tr></tbody></table></div></div></div><div class="slds-section" ng-class="{\'slds-is-closed\': isChildrenCollapsed, \'slds-is-open\': !isChildrenCollapsed}"><h3 class="slds-section__title" ng-click="isChildrenCollapsed = !isChildrenCollapsed"><button aria-controls="children_accordion" aria-expanded="true" class="slds-button slds-section__title-action"><svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#switch" /></svg><span class="slds-truncate" title="Child Relationships">Child Relationships</span></button></h3><div aria-hidden="false" id="children_accordion" class="slds-section__content"><div class="slds-grid slds-wrap"><div class="slds-form-element slds-size_12-of-12 slds-p-bottom_small"><div class="slds-form-element__control slds-float_right"><input type="text" id="child_search" class="slds-input" placeholder="Search..." ng-model="child_query" /></div></div><table class="slds-table slds-table_bordered slds-max-medium-table_stacked-horizontal slds-no-row-hover slds-table_striped"><thead><tr class="slds-text-title_caps"><th scope="col"  ng-click="setRelationshipSort(\'childSObject\');">Child Object<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showRelationshipSort(\'childSObject\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!relationshipReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="relationshipReverse" /></svg><span class="slds-assistive-text">Sort</span></button></th><th scope="col"  ng-click="setRelationshipSort(\'relationshipName\');">Relationship Name<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showRelationshipSort(\'relationshipName\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!relationshipReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="relationshipReverse" /></svg><span class="slds-assistive-text">Sort</span></button></th><th scope="col"  ng-click="setRelationshipSort(\'field\');">Field<button class="slds-button slds-button_icon slds-button_icon" title="Sort" ng-show="showRelationshipSort(\'field\');"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowdown" ng-show="!relationshipReverse" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#arrowup" ng-show="relationshipReverse" /></svg><span class="slds-assistive-text">Sort</span></button></th><th scope="col" class="slds-text-align_center">Cascade</th><th scope="col" class="slds-text-align_center">Deprecated</th><th scope="col" class="slds-text-align_center">Restricted<button class="slds-button slds-button_icon slds-button_icon slds-float_right" title="Clear" ng-click="clearRelationshipSort();"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close" /></svg><span class="slds-assistive-text">Clear</span></button></th></tr></thead><tbody><tr ng-repeat="child in current_object.childRelationships | orderBy:relationshipsPredicate:relationshipsReverse | filter:child_query"><td data-label="Child Object"><a ui-sref="object({ name: child.childSObject })">{{ child.childSObject }}</a></td><td data-label="Relationship Name">{{ child.relationshipName }}</td><td data-label="Field">{{ child.field }}</td><td class="slds-text-align_center"><button class="slds-button slds-button_icon slds-button_icon"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close" ng-show="child.cascadeDelete" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check" ng-show="!child.cascadeDelete" /></svg></button></td><td class="slds-text-align_center"><button class="slds-button slds-button_icon slds-button_icon"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close" ng-show="child.deprecatedAndHidden" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check" ng-show="!child.deprecatedAndHidden" /></svg></button></td><td colspan="2" class="slds-text-align_center"><button class="slds-button slds-button_icon slds-button_icon"><svg class="slds-button__icon slds-button__icon_small" aria-hidden="true"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#close" ng-show="child.restrictedDelete" /><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#check" ng-show="!child.restrictedDelete" /></svg></button></td></tr></tbody></table></div></div></div></div>'
                         }
-                   }
+                    }
                 });
             }]);
 
@@ -72,17 +69,44 @@
                     ]
                 ];
 
+                $scope.showFieldSort = function (predicate) {
+                    return $scope.fieldsPredicate === predicate;
+                };
+
+                $scope.setFieldSort = function (predicate) {
+                    if ($scope.fieldsPredicate === predicate) {
+                        $scope.fieldsReverse = !$scope.fieldsReverse;
+                    } else {
+                        $scope.fieldsPredicate = predicate;
+                        $scope.fieldsReverse = false;
+                    }
+                };
+
+                $scope.clearFieldSort = function () {
+                    $scope.fieldsPredicate = '';
+                };
+
+                $scope.showRelationshipSort = function (predicate) {
+                    return $scope.relationshipsPredicate === predicate;
+                };
+
+                $scope.setRelationshipSort = function (predicate) {
+                    if ($scope.relationshipsPredicate === predicate) {
+                        $scope.relationshipsReverse = !$scope.relationshipsReverse;
+                    } else {
+                        $scope.relationshipsPredicate = predicate;
+                        $scope.relationshipsReverse = false;
+                    }
+                };
+
+                $scope.clearRelationshipSort = function () {
+                    $scope.relationshipsPredicate = '';
+                };
+
                 conn.describe($stateParams.name, function (error_describe, metadata) {
                     $scope.current_object = metadata;
                     $scope.fieldsPredicate = '';
                     $scope.relationshipsPredicate = '';
-                    $scope.labelStyle = 'fa-sort';
-                    $scope.nameStyle = 'fa-sort';
-                    $scope.typeStyle = 'fa-sort';
-                    $scope.descStyle = 'fa-sort';
-                    $scope.childSObjectStyle = 'fa-sort';
-                    $scope.rnameStyle = 'fa-sort';
-                    $scope.fieldStyle = 'fa-sort';
                     $scope.loading_main = false;
 
                     $scope.$apply();
@@ -99,41 +123,44 @@
                     $scope.$apply();
                 });
             });
-        </script>
-    </head>
-    <body>
-        <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-            <div class="container-fluid">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">Object Description</a>
-                </div>
-                <div class="navbar-collapse collapse">
-                </div>
-            </div>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-3 col-md-2 sidebar" ng-controller="ObjectListCtrl">
-                    <form class="navbar-form nav-sidebar">
-                        <input type="text" class="form-control" placeholder="Search..." ng-model="query" />
-                    </form>
-                    <ul class="nav nav-sidebar">
-                        <li ng-show="loading_sidebar"><a href="#"><i class="fa fa-circle-o-notch fa-spin"></i> Loading...</a></li>
-                        <li ng-repeat="object in objects | filter:query">
-                            <a ui-sref='object({ name: object.name })'>{{ object.label }}</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" ui-view="body">
+            </script>
+        </head>
+        <body class="slds-scope">
+            <div class="slds-page-header">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-opportunity" title="Description of icon when needed">
+                            <svg class="slds-icon slds-page-header__icon" aria-hidden="true">
+                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/custom-sprite/svg/symbols.svg#custom108" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Object Description">Object Description</h1>
+                    </div>
                 </div>
             </div>
-        </div>
-    </body>
-</html>
+            <div class="slds-grid" id="main-container">
+                <div class="slds-size_2-of-12" style="background: rgb(22, 50, 92);" ng-controller="ObjectListCtrl" id="side-nav">
+                    <div class="slds-form-element slds-p-around_small">
+                        <div class="slds-form-element__control">
+                            <input type="text" id="sidebar_search" class="slds-input" placeholder="Search..." ng-model="query" />
+                        </div>
+                    </div>
+                    <nav class="slds-nav-vertical slds-border_top slds-p-top_small" aria-label="Objects" id="obj-list">
+                        <div class="slds-nav-vertical__section">
+                            <h2 class="slds-nav-vertical__title slds-text-title_caps slds-text-color_inverse">Objects</h2>
+                            <ul>
+                                <li ng-repeat="object in objects | filter:query" class="slds-nav-vertical__item slds-text-color_inverse">
+                                    <a class="slds-nav-vertical__action" ui-sref='object({ name: object.name })'>{{ object.label }}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+                <div class="slds-size_10-of-12" ui-view="body">
+                </div>
+            </div>
+        </body>
+    </html>
 </apex:page>

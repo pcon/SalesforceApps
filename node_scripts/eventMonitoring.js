@@ -13,6 +13,7 @@ var lo = require('lodash');
 var moment = require('moment');
 var path = require('path');
 var request = require('request');
+var targz = require('tar.gz');
 var url = require('url');
 var utils = require('./utils.js');
 
@@ -47,12 +48,14 @@ app.version('1.0.0')
     .option('--json', 'Output files as json')
     .option('--csv', 'Output files as csv')
     .option('--couchdb', 'Outputs to couchdb')
+    .option('--compress', 'Compresses the outputted files by day')
     .option('--env [env]', 'The environment name')
     .option('--dumpdir [dir]', 'The directory to dump files into')
     .parse(process.argv);
 
 var app_config = {
-    output_type: 'json'
+    output_type: 'json',
+    compress: false
 };
 
 /**
@@ -75,6 +78,11 @@ var parseArguments = function () {
 
     app_config.start_date = app.startdate === undefined ? moment().startOf('day').subtract(1, 'days') : moment(app.startdate).startOf('day');
     app_config.end_date = app.enddate === undefined ? moment(app_config.start_date).endOf('day') : moment(app.enddate).endOf('day');
+
+    if (app_config.start_date.isSameOrAfter(app_config.end_date)) {
+        global.logger.error('End date must be after or the same as the start date');
+        process.exit(-1);
+    }
 
     if (app.env) {
         utils.setCredentialsFromSolenopsisCredentials(app.env);
@@ -107,6 +115,20 @@ var parseArguments = function () {
             global.logger.debug(error);
             process.exit(-1);
         }
+    }
+
+    if ((app_config.output_type === 'json' || app_config.output_type === 'csv') && !global.config.options.data_dump_dir) {
+        global.logger.error('The data dump directory must be set when using ' + app_config.output_type);
+        process.exit(-1);
+    }
+
+    if (app.compress) {
+        app_config.compress = true;
+    }
+
+    if (app_config.output_type !== 'json' && app_config.output_type !== 'csv' && app_config.compress) {
+        global.logger.info('Compression not supported for ' + app_config.output_type + ' skipping');
+        app_config.compress = false;
     }
 
     if (app_config.output_type === 'couchdb') {
@@ -294,6 +316,7 @@ var processCSV = function (filename, log_url, token) {
         .pipe(fs.createWriteStream(filename))
         .on('finish', function () {
             global.logger.info(filename + ' - Write complete');
+            deferred.resolve();
         }).on('error', function (error) {
             global.logger.error(error);
             deferred.reject(error);
@@ -349,7 +372,7 @@ var getEventLog = function (filename, uri) {
 var getEventType = function self(data, deferred) {
     'use strict';
 
-    var row, filename, m;
+    var row, filename, dirname, m, dir_path, file_path, fs_stats;
 
     if (lo.isEmpty(data)) {
         deferred.resolve();
@@ -360,17 +383,31 @@ var getEventType = function self(data, deferred) {
         if (app_config.output_type === 'couchdb') {
             filename = m.format('YYYY-MM-DD') + '-' + row.EventType;
         } else {
+            dirname = m.format('YYYY-MM-DD');
+            dir_path = path.join(global.config.options.data_dump_dir, dirname);
             filename = m.format('YYYY-MM-DD') + '-' + row.EventType + '.' + app_config.output_type;
+            file_path = path.join(dir_path, filename);
+
+            /*jslint stupid: true, bitwise: true*/
+            try {
+                fs.accessSync(dir_path, (fs.R_OK | fs.W_OK));
+                global.logger.debug('directory ' + dir_path + ' exists.  Skipping creation');
+            } catch (error) {
+                fs.mkdirSync(dir_path);
+            }
+
+            fs_stats = fs.statSync(dir_path);
+            /*jslint stupid: false, bitwise: false*/
+
+            if (!fs_stats.isDirectory()) {
+                throw new Error(dir_path + ' is not a directory');
+            }
         }
 
         // NOTE: The filesize here is for the CSV file.  Converting it to json almost doubles the total on disk filesize
         global.logger.info('Fetching ' + filesize(row.LogFileLength) + ' file for ' + row.EventType + ' => ' + filename);
 
-        if (global.config.options.data_dump_dir && app_config.output_type !== 'couchdb') {
-            filename = path.join(global.config.options.data_dump_dir, filename);
-        }
-
-        getEventLog(filename, row.LogFile)
+        getEventLog(file_path, row.LogFile)
             .then(function () {
                 self(lo.slice(data, 1), deferred);
             }).catch(function (error) {
@@ -397,9 +434,100 @@ var getEventTypes = function (data) {
     return deferred.promise;
 };
 
+/**
+ * Deletes the folder for the given day
+ *
+ * @param {String} day - The formatted date to use
+ */
+var deleteDay = function (day) {
+    'use strict';
+
+    var dir_path = path.join(global.config.options.data_dump_dir, day),
+        deferred = Q.defer();
+
+    global.logger.info('Deleting directory for ' + day);
+    utils.deleteFolderRecursive(dir_path);
+    deferred.resolve();
+
+    return deferred.promise;
+};
+
+/**
+* Compresses a day into a bzip2 file
+*
+* @param {String} day - The formatted date to use
+*/
+var compressDay = function (day) {
+    'use strict';
+
+    var read, write,
+        dir_path = path.join(global.config.options.data_dump_dir, day),
+        out_path = path.join(global.config.options.data_dump_dir, day + '.tar.gz'),
+        deferred = Q.defer();
+
+    global.logger.info('Compressing files for ' + day);
+
+    read = targz().createReadStream(dir_path);
+    write = fs.createWriteStream(out_path);
+
+    read.pipe(write, {end: false});
+
+    read.on('end', function () {
+        global.logger.debug('Compression complete');
+
+        deleteDay(day)
+            .then(function () {
+                deferred.resolve();
+            }).catch(function (error) {
+                global.logger.debug('Error deleting files ' + error.message);
+                deferred.reject(error);
+            });
+    });
+
+    read.on('error', function (error) {
+        global.logger.debug('Error tarring file ' + error.message);
+        deferred.reject(error);
+    });
+
+    deferred.resolve();
+
+    return deferred.promise;
+};
+
+/**
+* Compresses the files on disk to a bzip2 and removes the old files
+*/
+var compressFiles = function () {
+    'use strict';
+
+    var i,
+        promises = [],
+        deferred = Q.defer();
+
+    if (app_config.compress) {
+        for (i = 0; i <= app_config.end_date.diff(app_config.start_date, 'days'); i += 1) {
+            promises.push(compressDay(app_config.start_date.add(i).format('YYYY-MM-DD')));
+        }
+
+        Q.allSettled(promises)
+            .then(function () {
+                deferred.resolve();
+            }).catch(function (error) {
+                global.logger.error('Got an error compressing files ' + error.message);
+                deferred.reject(error);
+            });
+    } else {
+        deferred.resolve();
+    }
+
+    return deferred.promise;
+};
+
+
 Q.fcall(parseArguments)
     .then(queryEventTypes)
     .then(getEventTypes)
+    .then(compressFiles)
     .catch(function (error) {
         'use strict';
 
