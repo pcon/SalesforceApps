@@ -89,7 +89,7 @@ var cometd_processdata = function (server_data) {
 };
 
 /**
- * Subcribe to the comet channel
+ * Subscribe to the comet channel
  * @param {object} data The connection and arguments data
  * @returns {Promise} Promise for when the subscription has happened
  */
