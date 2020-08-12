@@ -1,6 +1,12 @@
 packages/*.pem
+domo/config.json
+domo/node_modules
 node_scripts/config.js
 node_scripts/node_modules
 node_scripts/dump_dir
 cdc_example/node_modules
 cdc_example/package-lock.json
+sso_example/node_modules
+sso_example/certs
+sso_example/credentials.js
+.vscode

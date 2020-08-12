@@ -1,0 +1,29 @@
+{
+  "name": "domo",
+  "version": "1.0.0",
+  "description": "Scripts for Domo and Salesforce",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pcon/SalesforceApps.git"
+  },
+  "author": "Patrick Connelly",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/pcon/SalesforceApps/issues"
+  },
+  "homepage": "https://github.com/pcon/SalesforceApps#readme",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "client-oauth2": "^4.2.5",
+    "jsforce": "^1.9.3",
+    "jsonfile": "^6.0.1",
+    "lodash": "^4.17.19"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  }
+}
