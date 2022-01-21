@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/pcon/SalesforceApps#readme",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "client-oauth2": "^4.2.5",
     "jsforce": "^1.9.3",
     "jsonfile": "^6.0.1",
