@@ -15,7 +15,7 @@
     "eslint": "^5.12.1"
   },
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "bunyan": "^1.8.12",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
