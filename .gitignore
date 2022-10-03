@@ -9,4 +9,6 @@ cdc_example/package-lock.json
 sso_example/node_modules
 sso_example/certs
 sso_example/credentials.js
+objectPermissions/node_modules
+objectPermissions/_cache
 .vscode

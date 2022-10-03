@@ -1,0 +1,108 @@
+{
+    "env": {
+        "browser": true,
+        "node": true,
+        "jest": true,
+        "es6": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
+    "rules": {
+        "array-bracket-spacing": [
+            "error",
+            "always"
+        ],
+        "block-scoped-var": "error",
+        "block-spacing": [
+            "error",
+            "never"
+        ],
+        "brace-style": [
+            "error",
+            "1tbs"
+        ],
+        "comma-dangle": [
+            "error",
+            "never"
+        ],
+        "indent": [
+            "error",
+            4
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "global-require": "error",
+        "no-extra-parens": "error",
+        "no-inline-comments": "error",
+        "no-lonely-if": "error",
+        "no-multiple-empty-lines": [
+            "error",
+            {
+                "max": 1,
+                "maxBOF": 0,
+                "maxEOF": 0
+            }
+        ],
+        "no-mixed-operators": "error",
+        "no-mixed-requires": "error",
+        "no-nested-ternary": "error",
+        "no-plusplus": "error",
+        "no-return-assign": "error",
+        "no-trailing-spaces": "error",
+        "no-useless-return": "error",
+        "object-curly-newline": [
+            "error",
+            {
+                "minProperties": 1
+            }
+        ],
+        "one-var": [
+            "error",
+            {
+                "initialized": "never",
+                "uninitialized": "consecutive"
+            }
+        ],
+        "one-var-declaration-per-line": [
+            "error",
+            "initializations"
+        ],
+        "padded-blocks": [
+            "error",
+            "never"
+        ],
+        "quotes": [
+            "error",
+            "single"
+        ],
+        "require-jsdoc": [
+            "warn",
+            {
+                "require": {
+                    "FunctionDeclaration": true,
+                    "MethodDefinition": true,
+                    "ClassDeclaration": true,
+                    "ArrowFunctionExpression": true,
+                    "FunctionExpression": true
+                }
+            }
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "space-before-function-paren": [
+            "error",
+            {
+                "anonymous": "always",
+                "named": "never"
+            }
+        ],
+        "valid-jsdoc": "error"
+    }
+}

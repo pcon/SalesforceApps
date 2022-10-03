@@ -1,0 +1,6 @@
+{
+    "cache": {
+        "dir": "_cache",
+        "expire": 7
+    }
+}
