@@ -21,3 +21,8 @@ Some example code and utility class for interacting with Runkeeper from Salesfor
 A Google Chrome extension for rewriting URLs the point to the old documentation to automatically go to the new documentation.
 
 * [Read more](https://github.com/pcon/SalesforceApps/tree/master/docsRewriter) on github
+
+## Object permissions
+The idea behind this script is to provide a CSV file for all users that have any access to a provided Salesforce object.  This script will output the user's id, username and true/false for the permissions that the user has
+
+* [Read more](https://github.com/pcon/SalesforceApps/tree/master/objectPermissions) on github
